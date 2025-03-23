@@ -1,2 +1,2 @@
 # ProdBlockTUI
-Program Blocker and Process Killer a la LeechBlockNG rulesets
+A customizable program blocker and process killer 
