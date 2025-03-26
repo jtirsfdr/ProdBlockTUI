@@ -38,28 +38,17 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+
 func main() {
 	//init model
-	m := model{
-	//Strings for specific pages
-	pagestrings: [][]string{ 
-		//Main menu
-		[]string{"Run blocker", "Options", "Exit"},
-		//Options
-		[]string{"Rulesets", "Active", "Times", "Days", "Overrides", "Timelimit", "Processes", "Files", "Return to menu"},
-		//Modify ruleset
-		[]string{"Add", "Switch", "Delete", "View", "Return to options"},
-		//Modify fields
-		[]string{"Add", "Modify", "Delete", "Return to options"},
-		//Delete ruleset formatting
-		[]string{"Active   ", "Times    ", "Days     ", "Overrides", "Timelimit", "Processes", "Files    "}, 
-	},	
-	ci: 1, cf:4, crs: 0, cursor: 0, temprs: 1, page: "menu", invalidinput: false}
-
+	m := model{ci: 1, cf:4, crs: 0, cursor: 0, temprs: 1, page: "menu", invalidinput: false}
 	//start tui
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil { panic(err) }
 }
+
+type BlockUpdate time.Time
+type LogClear time.Time
 
 //TUI State
 type model struct {
@@ -72,7 +61,6 @@ type model struct {
 	page string			//Categorizes each page
 	cursor int 			//Cursor position for each option
 	inputbuffer strings.Builder	//Input buffer for manipulating fields
-	pagestrings [][]string 		//Strings for specific pages
 	active int			//Toggle for lock/unlock loop
 	log []string			//Lock / unlock / kill output
 }

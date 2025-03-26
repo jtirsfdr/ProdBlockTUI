@@ -7,98 +7,51 @@ import (
 )
 
 
-
 //Frontend for TUI
 func (m model) View() string {
 	var s string 
-
-	//Get current Ruleset Value
-	rsv := reflect.ValueOf(&Ruleset[m.crs]).Elem()
-//	rst := reflect.TypeOf(Ruleset[m.crs])
-	//Get field from current field
-//	field := rsv.Field(m.cf)
-	
 	//Header
 	s += "\nProgBlock\n\n"	
 
 	switch m.page { 
-	case "run":
-		s += m.runPage()	
+	case "run": //Run blocker
+		s += m.viewRun()	
 
-	//Main Menu
-	case "menu":
-		for i := range m.pagestrings[0]{ //CHANGE
-			if i==m.cursor { 
-				s += fmt.Sprintf("[x] %s\n", m.pagestrings[0][i])  
-			} else { 
-				s += fmt.Sprintf("[ ] %s\n", m.pagestrings[0][i]) 
-			}
-		}
+	case "menu": //Main Menu
+		s += m.viewMenu()		
 
-	//Options
-	case "options":
-		s += fmt.Sprintf("Current ruleset: %v\n\n", m.crs+1)
+	case "options": //Options
+		s += m.viewOptions()
 
-		for i := range m.pagestrings[1]{ //CHANGE
-			if i==m.cursor { 
-				s += fmt.Sprintf("[x] %s\n", m.pagestrings[1][i]) 
-			} else { 
-				s += fmt.Sprintf("[ ] %s\n", m.pagestrings[1][i]) 
-			}
-		}
+	case "optfi", "optrs": //Field options	
+		s += m.viewDataOptions()
 
-	//Field options	
-	case "optfi":
-		s += m.optionsPage()
-	
-	//Add to field
-	case "addfi":
+	case "addfi": //Add to field
 		s += m.listFieldValues()
 		s += fmt.Sprintf("Value to add: %v\n", m.inputbuffer.String())
-	
-	//Select field to modify
-	case "modfi":
+
+	case "modfi": //Select field to modify
 		s += m.listFieldValues()
 		s += fmt.Sprintf("Choose index: %v\n", m.inputbuffer.String())
 
-	//Change field value
-	case "changefi":
+	case "changefi": //Change field value
 		s += m.listFieldValues()
 		s += fmt.Sprintf("Change value: %v\n", m.inputbuffer.String())
 
-	//Delete field
-	case "delfi":
+	case "delfi": //Delete field
 		s += m.listFieldValues()
 		s += fmt.Sprintf("Index to delete: %v\n", m.inputbuffer.String())
 
-	//Ruleset options
-	case "optrs":
-		s += m.optionsPage()
+	case "switchrs": //Switch to ruleset
+		s += m.viewSwitch()
 
-	//Switch to ruleset
-	case "switchrs":
-		temprsv := reflect.ValueOf(&Ruleset[m.temprs-1]).Elem()
-
-		s += fmt.Sprintf("Current ruleset: %v\n", m.crs+1)
-		s += fmt.Sprintf("Total rulesets: %v\n\n", len(Ruleset)) 
-	
-		//Show all fields of ruleset
-		for i := 0; i < rsv.NumField(); i++{
-			s += fmt.Sprintf("%v | %v\n", m.pagestrings[4][i], temprsv.Field(i))
-		}
-
-		s += fmt.Sprintf("\nSwitch to: %v\n", m.inputbuffer.String())
-
-	//Delete ruleset
-	case "delrs":
+	case "delrs": //Delete ruleset
 		s += m.listRulesetValues()	
 		s += fmt.Sprintf("\nAre you sure you want to delete this ruleset?\n")
 		s += fmt.Sprintf("(Y)es or (N)o")
-	
-	//View ruleset
-	case "viewrs":
+
+	case "viewrs": //View ruleset
 		s += m.listRulesetValues()
-	
 	}
 
 	//Warn user of invalid input
@@ -109,7 +62,55 @@ func (m model) View() string {
 	return s
 }
 
-func (m model) runPage() string {
+// START VIEW PAGES
+
+func (m model) viewMenu() string {
+	var s string
+	menulist := []string{"Run blocker", "Options", "Exit"}
+		for i := range menulist { 
+			if i==m.cursor { 
+				s += fmt.Sprintf("[x] %s\n", menulist[i])  
+			} else { 
+				s += fmt.Sprintf("[ ] %s\n", menulist[i]) 
+			}
+		}
+	return s
+}
+
+func (m model) viewOptions() string {
+	var s string
+	optionslist := []string{"Rulesets", "Active", "Times", "Days", "Overrides", "Timelimit", "Processes", "Files", "Return to menu"}	
+		s += fmt.Sprintf("Current ruleset: %v\n\n", m.crs+1)
+		for i := range optionslist{ 
+			if i==m.cursor { 
+				s += fmt.Sprintf("[x] %s\n", optionslist[i]) 
+			} else { 
+				s += fmt.Sprintf("[ ] %s\n", optionslist[i]) 
+			}
+		}
+	return s
+}
+
+func (m model) viewSwitch() string {
+	var s string
+	switchstring := []string{"Active   ", "Times    ", "Days     ", "Overrides", "Timelimit", "Processes", "Files    "}
+	rsv := reflect.ValueOf(&Ruleset[m.crs]).Elem()
+	temprsv := reflect.ValueOf(&Ruleset[m.temprs-1]).Elem()
+
+		s += fmt.Sprintf("Current ruleset: %v\n", m.crs+1)
+		s += fmt.Sprintf("Total rulesets: %v\n\n", len(Ruleset)) 
+	
+		//Show all fields of ruleset
+		for i := 0; i < rsv.NumField(); i++{
+			s += fmt.Sprintf("%v | %v\n", switchstring[i], temprsv.Field(i))
+		}
+
+		s += fmt.Sprintf("\nSwitch to: %v\n", m.inputbuffer.String())
+	return s
+}
+
+func (m model) viewRun() string {
+	switchstring := []string{"Active   ", "Times    ", "Days     ", "Overrides", "Timelimit", "Processes", "Files    "}
 	var s string
 	rsv := reflect.ValueOf(&Ruleset[m.crs]).Elem()
 	//Show active rulesets
@@ -122,7 +123,7 @@ func (m model) runPage() string {
 	s += fmt.Sprintf("\n\n")
 	//Show value of ruleset from input
 	for i := 0; i < rsv.NumField(); i++{
-		s += fmt.Sprintf("%v | %v\n", m.pagestrings[4][i], rsv.Field(i))
+		s += fmt.Sprintf("%v | %v\n", switchstring[i], rsv.Field(i))
 	}
 
 	//Prevent crash with null access
@@ -132,27 +133,29 @@ func (m model) runPage() string {
 	return s
 }
 
-func (m *model) optionsPage() string {
+func (m *model) viewDataOptions() string {
 	var s string 
+	modifystrings := []string{"Add", "Switch", "Delete", "View", "Return to options"}
+
 	rst := reflect.TypeOf(Ruleset[m.crs])
-	olen := len(m.pagestrings[2]) - 1
+	olen := len(modifystrings) - 1
 		
 		//Modifying ruleset
 		if m.rs == 1 {
-		s += fmt.Sprintf("Current ruleset: %d\n", m.crs+1) 
-		s += fmt.Sprintf("Total rulesets: %d\n\n", len(Ruleset))
+			s += fmt.Sprintf("Current ruleset: %d\n", m.crs+1) 
+			s += fmt.Sprintf("Total rulesets: %d\n\n", len(Ruleset))
 			
 			for i:=0; i < olen; i++ {
 				if i==m.cursor { 
-					s += fmt.Sprintf("[x] %v rulesets\n", m.pagestrings[2][i])
+					s += fmt.Sprintf("[x] %v rulesets\n", modifystrings[i])
 				} else { 
-					s += fmt.Sprintf("[ ] %v rulesets\n", m.pagestrings[2][i]) 
+					s += fmt.Sprintf("[ ] %v rulesets\n", modifystrings[i]) 
 				}
 			}
 				if m.cursor == olen { 
-					s += fmt.Sprintf("[x] %v\n", m.pagestrings[2][olen])
+					s += fmt.Sprintf("[x] %v\n", modifystrings[olen])
 				} else { 
-					s += fmt.Sprintf("[ ] %v\n", m.pagestrings[2][olen]) 
+					s += fmt.Sprintf("[ ] %v\n", modifystrings[olen]) 
 				}
 
 		} else { //Modifying fields
@@ -165,22 +168,26 @@ func (m *model) optionsPage() string {
 
 			for i:=0; i < olen-1; i++ {
 				if i==m.cursor { 
-					s += fmt.Sprintf("[x] %v %v\n", m.pagestrings[3][i], fieldname)
+					s += fmt.Sprintf("[x] %v %v\n", modifystrings[i], fieldname)
 				} else { 
-					s += fmt.Sprintf("[ ] %v %v\n", m.pagestrings[3][i], fieldname)
+					s += fmt.Sprintf("[ ] %v %v\n", modifystrings[i], fieldname)
 				}
 			}
 				if m.cursor == olen-1 { 
-					s += fmt.Sprintf("[x] %v\n", m.pagestrings[3][olen-1])
+					s += fmt.Sprintf("[x] %v\n", modifystrings[olen-1])
 				} else { 
-					s += fmt.Sprintf("[ ] %v\n", m.pagestrings[3][olen-1]) 
+					s += fmt.Sprintf("[ ] %v\n", modifystrings[olen-1]) 
 				}
 		}
 		return s
 }
 
+// END VIEW PAGES
+
 //Show all values of each field in current Ruleset
 func (m *model) listRulesetValues() string {
+	rulesetstrings := []string{"Add", "Switch", "Delete", "View", "Return to options"}
+
 	var s string
 	
 	//Get current Ruleset Value
@@ -191,7 +198,7 @@ func (m *model) listRulesetValues() string {
 		
 //	Show all fields
 	for i := 0; i < rsv.NumField(); i++{
-		s += fmt.Sprintf("%v | %v\n", m.pagestrings[4][i], rsv.Field(i))
+		s += fmt.Sprintf("%v | %v\n", rulesetstrings[i], rsv.Field(i))
 	}	
 
 	return s
@@ -222,3 +229,4 @@ func (m *model) listFieldValues() string {
 	
 	return s
 }
+
