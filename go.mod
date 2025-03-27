@@ -3,6 +3,7 @@ module jtir/jtprogblock
 go 1.24.1
 
 require (
+	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/shirou/gopsutil v3.21.11+incompatible
 )

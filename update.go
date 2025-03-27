@@ -4,14 +4,20 @@ import (
 	"time"
 	"strconv"
 	tea "github.com/charmbracelet/bubbletea"
+//	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"reflect"
 )
 
 //Backend TUI logic
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type){
+	case tea.WindowSizeMsg:
+		m.help.Width = msg.Width
+
 	//Update TUI based on key input
 	case tea.KeyMsg:
+		if key.Matches(msg, m.keys.Help){ m.help.ShowAll = !m.help.ShowAll }
 		if msg.String() == "ctrl+c"{ return m, tea.Quit }
 		switch m.page{
 		case "menu": //Main Menu
@@ -431,8 +437,25 @@ func (m *model) switchPage(page string) tea.Model {
 func (m *model) checkMsgString(msg tea.KeyMsg) tea.KeyMsg {
 	switch m.page{
 	case "menu", "options", "optrs", "optfi":
+		switch {
+		case key.Matches(msg, m.keys.Up):
+			if m.cursor > 0 { m.cursor-- }
+		
+		case key.Matches(msg, m.keys.Down):
+			//Clamp cursor range by pagetype
+			switch m.page{
+			case "menu":
+				if m.cursor < 2 { m.cursor++ } 
+			case "options":
+				if m.cursor < 8 { m.cursor++ } 
+			case "optrs":
+				if m.cursor < 4 { m.cursor++ }
+			case "optfi":
+				if m.cursor < 3 { m.cursor++ }
+			}
+		}
+		/*
 		switch msg.String(){ 
-
 		//Go down
 		case "j":
 			//Clamp cursor range
@@ -452,7 +475,7 @@ func (m *model) checkMsgString(msg tea.KeyMsg) tea.KeyMsg {
 			//Clamp cursor range
 			if m.cursor > 0 { m.cursor-- }
 		}
-
+		*/
 	case "addfi", "switchrs", "modfi", "changefi", "delfi":
 		switch msg.String(){
 

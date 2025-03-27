@@ -36,12 +36,14 @@ import (
 	"strconv"
 	"strings"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 )
 
 
 func main() {
 	//init model
-	m := model{ci: 1, cf:4, crs: 0, cursor: 0, temprs: 1, page: "menu", invalidinput: false}
+	m := model{ci: 1, cf:4, crs: 0, cursor: 0, temprs: 1, page: "menu", invalidinput: false, help: help.New(), keys: keys}
 	//start tui
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil { panic(err) }
@@ -50,8 +52,48 @@ func main() {
 type BlockUpdate time.Time
 type LogClear time.Time
 
+type keyMap struct {
+	Quit key.Binding
+	Help key.Binding
+	Up   key.Binding
+	Down key.Binding
+}
+
+var keys = keyMap{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "Help"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "Quit"),
+	),
+}
+
+//m.help.ShowAll = false
+func (k keyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Help}
+}
+
+//m.help.ShowAll = true
+func (k keyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.Quit}, //Each slice is a column
+	}
+}
+
 //TUI State
 type model struct {
+	keys keyMap
+	help help.Model	
 	ci int 				//Current index (of field)
 	cf int 				//Current field
 	crs int 			//Current ruleset

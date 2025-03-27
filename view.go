@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+//	"github.com/charmbracelet/bubbles/help"
+//	"github.com/charmbracelet/bubbles/key"
 )
 
 
 //Frontend for TUI
 func (m model) View() string {
 	var s string 
+	helpView := m.help.View(m.keys)
 	//Header
 	s += "\nProgBlock\n\n"	
-
+	
 	switch m.page { 
 	case "run": //Run blocker
 		s += m.viewRun()	
@@ -59,6 +62,7 @@ func (m model) View() string {
 		s += fmt.Sprintf("Invalid input\n")
 	}
 	
+	s += fmt.Sprintf("---\n%v", helpView)
 	return s
 }
 
